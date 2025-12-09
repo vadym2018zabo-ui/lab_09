@@ -1,44 +1,46 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
+import '../widgets/form_button.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class SignupScreen extends StatefulWidget {
+  const SignupScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<SignupScreen> createState() => _SignupScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _SignupScreenState extends State<SignupScreen> {
   final _formKey = GlobalKey<FormState>();
   final _email = TextEditingController();
   final _password = TextEditingController();
+  final _name = TextEditingController();
+
+  final _api = ApiService(baseUrl: 'https://lab_09-vadym.requestcatcher.com');
 
   @override
   void dispose() {
     _email.dispose();
     _password.dispose();
+    _name.dispose();
     super.dispose();
   }
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-
-    final _api = ApiService(baseUrl: 'https://lab_09-vadym.requestcatcher.com');
-
-    final ok = await _api.sendForm('login', {
+    final ok = await _api.sendForm('signup', {
+      'name': _name.text.trim(),
       'email': _email.text.trim(),
-      'password': _password.text.trim(),
+      'password': _password.text,
     });
-
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(ok ? 'Login sent' : 'Failed to send')),
+      SnackBar(content: Text(ok ? 'Sign up sent' : 'Failed to send')),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Lab 09')),
+      appBar: AppBar(title: const Text('Sign Up')),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Form(
@@ -46,18 +48,24 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             children: [
               TextFormField(
+                controller: _name,
+                decoration: const InputDecoration(labelText: 'Name'),
+                validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter name' : null,
+              ),
+              TextFormField(
                 controller: _email,
                 decoration: const InputDecoration(labelText: 'Email'),
-                validator: (value) => value!.isEmpty ? 'Enter email' : null,
+                keyboardType: TextInputType.emailAddress,
+                validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter email' : null,
               ),
               TextFormField(
                 controller: _password,
                 decoration: const InputDecoration(labelText: 'Password'),
                 obscureText: true,
-                validator: (value) => value!.isEmpty ? 'Enter password' : null,
+                validator: (v) => (v == null || v.isEmpty) ? 'Enter password' : null,
               ),
               const SizedBox(height: 20),
-              ElevatedButton(onPressed: _submit, child: const Text('Login')),
+              FormButton(label: 'Sign Up', onPressed: _submit),
             ],
           ),
         ),
